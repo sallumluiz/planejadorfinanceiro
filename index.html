@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planejador Financeiro por Etapas da Vida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'] } } } };
+</script>
+<style>
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  input[type=number]::-webkit-inner-spin-button{opacity:.4}
+  .fade{animation:fade .35s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+<!-- Cabeçalho -->
+<header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/80 backdrop-blur">
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6 h-16">
+    <div class="flex items-center gap-3">
+      <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/30">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      </div>
+      <div class="leading-tight">
+        <div class="text-sm font-extrabold tracking-tight">Planejador Financeiro</div>
+        <div class="text-[11px] font-medium text-slate-500">Etapas da Vida</div>
+      </div>
+    </div>
+    <div id="hdrUser" class="hidden items-center gap-2 text-sm font-semibold text-slate-600"></div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-5xl px-4 sm:px-6 pb-20">
+
+  <!-- TELA 1 -->
+  <section id="tela1" class="fade mx-auto mt-12 sm:mt-20 max-w-md">
+    <div class="mb-8 text-center">
+      <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">Simulador de patrimônio</span>
+      <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">Construa seu futuro,<br><span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">etapa por etapa</span></h1>
+      <p class="mt-3 text-slate-500">Simule seu patrimônio pelas etapas da vida.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+      <div class="space-y-5">
+        <div>
+          <label for="nome" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nome</label>
+          <input id="nome" type="text" placeholder="Seu nome" autocomplete="off" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none transition placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+        </div>
+        <div>
+          <label for="idade" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Idade atual</label>
+          <input id="idade" type="number" min="0" max="120" step="1" placeholder="Ex.: 30" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none transition placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+        </div>
+        <button id="continuar" class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:brightness-110 active:scale-[.99]">Continuar →</button>
+        <p class="min-h-[1.25rem] text-sm font-medium text-rose-600" id="erro1"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TELA 2 -->
+  <section id="tela2" class="hidden">
+    <div class="pt-10 pb-8">
+      <h1 id="saudacao" class="text-3xl sm:text-4xl font-extrabold tracking-tight"></h1>
+      <p id="resumo" class="mt-2 text-slate-500"></p>
+    </div>
+    <div id="etapas" class="relative"></div>
+    <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <button id="voltar" class="w-fit rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100">← Voltar</button>
+      <p class="text-xs text-slate-400 max-w-xl">Simulação ilustrativa, não é recomendação de investimento. Juros compostos mês a mês; aporte ao final de cada mês; cotação do dólar constante em cada etapa.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const RATES = { rfBR:.10, acBR:.12, rfUS:.06, acUS:.08 };
+const mRate = a => Math.pow(1 + a, 1/12) - 1;
+const M = { rfBR:mRate(RATES.rfBR), acBR:mRate(RATES.acBR), rfUS:mRate(RATES.rfUS), acUS:mRate(RATES.acUS) };
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const usd = v => v.toLocaleString('pt-BR',{style:'currency',currency:'USD'});
+const $ = id => document.getElementById(id);
+const num = el => { const v = parseFloat(el.value); return isFinite(v) && v > 0 ? v : 0; };
+
+/* ---------- Avatares SVG (ilustração moderna) ---------- */
+function avatar(kind){
+  const P = {
+    young:  {bg1:'#dbeafe', bg2:'#bfdbfe', skin:'#f2c7a5', shade:'#e0ad88', hair:'#3b2a20', top:'#2563eb', top2:'#1d4ed8'},
+    adult:  {bg1:'#d1fae5', bg2:'#a7f3d0', skin:'#e8b894', shade:'#d29e78', hair:'#4a3b33', top:'#1e293b', top2:'#0f172a'},
+    senior: {bg1:'#ede9fe', bg2:'#ddd6fe', skin:'#f0c9ac', shade:'#dcae8f', hair:'#eef1f5', top:'#7c3aed', top2:'#6d28d9'}
+  }[kind];
+  const gid = 'g_' + kind;
+  let s = `<defs>
+    <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${P.bg1}"/><stop offset="1" stop-color="${P.bg2}"/></linearGradient>
+    <linearGradient id="${gid}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.top}"/><stop offset="1" stop-color="${P.top2}"/></linearGradient>
+    <clipPath id="${gid}c"><circle cx="60" cy="60" r="60"/></clipPath></defs>
+    <g clip-path="url(#${gid}c)"><rect width="120" height="120" fill="url(#${gid})"/>
+    <circle cx="96" cy="24" r="22" fill="#fff" opacity=".35"/><circle cx="14" cy="100" r="26" fill="#fff" opacity=".25"/>`;
+  // corpo
+  if(kind==='young'){
+    s += `<path d="M12 124c2-26 20-36 48-36s46 10 48 36z" fill="url(#${gid}t)"/>
+          <path d="M44 90c3 9 9 13 16 13s13-4 16-13c-4-3-9-4-16-4s-12 1-16 4z" fill="#1e3a8a" opacity=".35"/>
+          <path d="M45 92c-2 10-3 20-3 32M75 92c2 10 3 20 3 32" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>`;
+  } else if(kind==='adult'){
+    s += `<path d="M10 124c2-26 20-36 50-36s48 10 50 36z" fill="url(#${gid}t)"/>
+          <path d="M46 88l14 22 14-22-6-3H52z" fill="#f8fafc"/>
+          <path d="M60 110l-5-14 5-4 5 4z" fill="#2563eb"/>
+          <path d="M46 88l-10 36M74 88l10 36" stroke="#334155" stroke-width="1.5" opacity=".7"/>`;
+  } else {
+    s += `<path d="M10 124c2-26 20-36 50-36s48 10 50 36z" fill="url(#${gid}t)"/>
+          <path d="M44 88l16 20 16-20" fill="#f5f3ff"/>
+          <path d="M60 108v16" stroke="#c4b5fd" stroke-width="2"/>
+          <circle cx="60" cy="114" r="1.6" fill="#a78bfa"/><circle cx="60" cy="121" r="1.6" fill="#a78bfa"/>`;
+  }
+  // pescoço e orelhas
+  s += `<path d="M50 74h20v16c-4 6-16 6-20 0z" fill="${P.shade}"/>
+        <ellipse cx="37.5" cy="56" rx="4" ry="6" fill="${P.shade}"/><ellipse cx="82.5" cy="56" rx="4" ry="6" fill="${P.shade}"/>`;
+  // cabelo (atrás) para sênior
+  if(kind==='senior') s += `<path d="M36 52c-3-22 8-34 24-34s27 12 24 34c-1-8-3-12-6-14H42c-3 2-5 6-6 14z" fill="${P.hair}"/>`;
+  // rosto
+  s += `<ellipse cx="60" cy="54" rx="22" ry="25" fill="${P.skin}"/>`;
+  if(kind==='young'){
+    s += `<path d="M37 52c-3-24 9-35 25-35 15 0 26 10 22 34-2-8-6-14-12-16-7 6-20 7-29 3-3 3-5 8-6 14z" fill="${P.hair}"/>
+          <path d="M44 41c6-1 12-4 15-8" stroke="#5a4130" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>`;
+  } else if(kind==='adult'){
+    s += `<path d="M37 50c-2-23 9-33 24-33s25 10 22 32c-2-7-5-12-9-14-9 4-21 4-30-1-3 3-5 8-7 16z" fill="${P.hair}"/>
+          <path d="M37 50c-1-6 0-12 3-17l5 3c-3 4-5 9-5 15zM83 50c1-6 0-12-3-17l-5 3c3 4 5 9 5 15z" fill="#aab2bf"/>
+          <path d="M42 62c2 14 10 20 18 20s16-6 18-20c-3 6-8 9-18 9s-15-3-18-9z" fill="#6b5b53" opacity=".85"/>
+          <path d="M42 62c2 14 10 20 18 20s16-6 18-20" fill="none" stroke="#aab2bf" stroke-width="2" opacity=".6"/>`;
+  } else {
+    s += `<path d="M38 46c1-12 10-20 22-20s21 8 22 20c-4-7-11-11-22-11S42 39 38 46z" fill="${P.hair}"/>
+          <path d="M45 66c4 3 10 4 15 4s11-1 15-4c-1 5-7 8-15 8s-14-3-15-8z" fill="${P.hair}"/>`;
+  }
+  // olhos, sobrancelhas, nariz, boca
+  const brow = kind==='senior' ? '#c9cfd8' : (kind==='adult' ? '#5b4a40' : '#3b2a20');
+  s += `<path d="M44 45q5-3 10 0M66 45q5-3 10 0" stroke="${brow}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="49" cy="52" rx="2.4" ry="2.8" fill="#1f2937"/><ellipse cx="71" cy="52" rx="2.4" ry="2.8" fill="#1f2937"/>
+        <circle cx="49.8" cy="51" r=".8" fill="#fff"/><circle cx="71.8" cy="51" r=".8" fill="#fff"/>
+        <path d="M60 54c-1 4-3 6 0 7" stroke="${P.shade}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='young') s += `<path d="M52 66q8 7 16 0" stroke="#9a4f3c" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="43" cy="62" r="3.5" fill="#f59e8b" opacity=".35"/><circle cx="77" cy="62" r="3.5" fill="#f59e8b" opacity=".35"/>`;
+  if(kind==='adult') s += `<path d="M53 68q7 4 14 0" stroke="#f5e9e2" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  if(kind==='senior'){
+    s += `<path d="M53 67q7 6 14 0" stroke="#9a4f3c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <path d="M42 46q-2 3 0 6M78 46q2 3 0 6M52 60q-3 3-1 6M68 60q3 3 1 6" stroke="${P.shade}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
+          <g fill="rgba(255,255,255,.25)" stroke="#334155" stroke-width="2.2"><circle cx="49" cy="52" r="8"/><circle cx="71" cy="52" r="8"/></g>
+          <path d="M57 52h6M41 51l-4-2M79 51l4-2" stroke="#334155" stroke-width="2.2" stroke-linecap="round"/>`;
+  }
+  s += `</g>`;
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="Avatar ${kind}" class="h-full w-full">${s}</svg>`;
+}
+
+/* ---------- Estado ---------- */
+let stages = []; // {n, title, years, kind}
+
+function buildStages(age){
+  const defs = [
+    {n:1, from:0,  to:35, title:'Etapa 1 · Até 35 anos', kind:'young'},
+    {n:2, from:35, to:60, title:'Etapa 2 · Dos 35 aos 60 anos', kind:'adult'},
+    {n:3, from:60, to:85, title:'Etapa 3 · Dos 60 aos 85 anos', kind:'senior'}
+  ];
+  return defs.filter(d => age < d.to).map(d => ({...d, years: d.to - Math.max(age, d.from)}));
+}
+
+/* ---------- Componentes de formulário ---------- */
+const WRAP = 'flex items-stretch overflow-hidden rounded-xl border border-slate-200 bg-white transition focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100';
+const WRAP_LOCK = 'flex items-stretch overflow-hidden rounded-xl border border-slate-200 bg-slate-100';
+const TAG = 'flex min-w-[2.75rem] items-center justify-center border-r border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-500';
+const INP = 'w-full min-w-0 bg-transparent px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none placeholder-slate-400';
+const LBL = 'mb-1.5 block text-xs font-semibold text-slate-600';
+
+const field = (label, tag, inner, locked) =>
+  `<div><label class="${LBL}">${label}</label><div class="${locked ? WRAP_LOCK : WRAP}"><span class="${TAG}">${tag}</span>${inner}</div></div>`;
+const numInput = (id, ph, extra='') => `<input id="${id}" data-in type="number" min="0" ${extra} placeholder="${ph}" class="${INP}">`;
+const lockInput = id => `<input id="${id}" readonly tabindex="-1" class="${INP} cursor-not-allowed text-slate-500">`;
+function pctSelect(id, def){
+  let o = '';
+  for(let p=0;p<=100;p+=10) o += `<option value="${p}"${p===def?' selected':''}>${p}</option>`;
+  return `<select id="${id}" data-in class="${INP} cursor-pointer">${o}</select>`;
+}
+const lockedPct = id => lockInput(id);
+
+const CHIP = n => `<span class="grid h-6 w-6 place-items-center rounded-full bg-slate-900 text-[11px] font-extrabold text-white">${n}</span>`;
+
+function buildCard(s, first){
+  const i = s.n;
+  const initial = first
+    ? `<div class="grid gap-4 sm:grid-cols-2">
+         ${field('Patrimônio Atual em Ações (R$)', 'R$', numInput(`s${i}_pAc`, '0', 'step="100"'))}
+         ${field('Patrimônio Atual em Renda Fixa (R$)', 'R$', numInput(`s${i}_pRf`, '0', 'step="100"'))}
+       </div>`
+    : `<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+         ${field('Ações Brasil (R$)', 'R$', lockInput(`s${i}_hAcBR`), true)}
+         ${field('Renda Fixa Brasil (R$)', 'R$', lockInput(`s${i}_hRfBR`), true)}
+         ${field('Ações EUA (US$)', 'US$', lockInput(`s${i}_hAcUS`), true)}
+         ${field('Renda Fixa EUA (US$)', 'US$', lockInput(`s${i}_hRfUS`), true)}
+       </div>`;
+  const note = first
+    ? 'O que você já tem hoje.'
+    : 'Herdado automaticamente do fechamento da etapa anterior.';
+  const dur = `${s.years} ${s.years===1?'ano':'anos'} nesta etapa`;
+  const last = '';
+  return `<div class="fade relative pl-14 sm:pl-20 pb-10" id="wrap${i}">
+    <div class="absolute left-0 top-6 grid h-11 w-11 sm:h-14 sm:w-14 place-items-center rounded-full bg-white ring-4 ring-slate-50 shadow-md border-2 border-blue-600 text-blue-700 font-extrabold text-lg" aria-hidden="true">${i}</div>
+    <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5" id="stage${i}">
+      <!-- Topo -->
+      <div class="flex items-center gap-4 sm:gap-5 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50 p-5 sm:p-6">
+        <div class="h-20 w-20 sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-full ring-4 ring-white shadow-lg">${avatar(s.kind)}</div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-widest text-blue-600">Etapa ${i} de 3</div>
+          <h3 class="mt-0.5 text-xl sm:text-2xl font-extrabold tracking-tight">${s.title}</h3>
+          <span class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${dur}</span>
+        </div>
+      </div>
+
+      <div class="space-y-6 p-5 sm:p-6">
+        <!-- 1 · Abertura -->
+        <section class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+          <div class="mb-4 flex items-center gap-2.5">${CHIP(1)}
+            <div><h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Abertura do Período</h4><p class="text-xs text-slate-500">${note}</p></div></div>
+          ${initial}
+        </section>
+
+        <!-- 2 · Premissas -->
+        <section class="rounded-xl border border-slate-200 p-4 sm:p-5">
+          <div class="mb-4 flex items-center gap-2.5">${CHIP(2)}
+            <div><h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Premissas e Poupança Mensal da Etapa</h4><p class="text-xs text-slate-500">Defina quanto poupar e onde investir.</p></div></div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            ${field('Cotação do Dólar nesta etapa (R$)', 'R$', `<input id="s${i}_fx" data-in type="number" min="0.01" step="0.01" value="5.50" class="${INP}">`)}
+            ${field('Total Poupança Líquida Mensal (R$)', 'R$', numInput(`s${i}_aporte`, '0', 'step="100"'))}
+            ${field('% Investido em Dólar da Poupança Líquida', '%', pctSelect(`s${i}_pUS`,0))}
+            ${field('% Investido em R$ da Poupança Líquida', '%', lockedPct(`s${i}_pBR`), true)}
+            ${field('% do investimento de Dólar em Ações EUA', '%', pctSelect(`s${i}_pAcUS`,50))}
+            ${field('% do investimento de Dólar em Renda Fixa EUA', '%', lockedPct(`s${i}_pRfUS`), true)}
+            ${field('% do investimento de R$ em Ações Brasil', '%', pctSelect(`s${i}_pAcBR`,50))}
+            ${field('% do investimento de R$ em Renda Fixa Brasil', '%', lockedPct(`s${i}_pRfBR`), true)}
+          </div>
+        </section>
+
+        <!-- 3 · Fechamento -->
+        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a1b44] via-[#0b2257] to-[#0f2d6b] p-5 sm:p-7 text-white shadow-lg shadow-blue-950/30">
+          <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-emerald-400/10 blur-2xl"></div>
+          <div class="pointer-events-none absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-blue-400/10 blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-2.5">
+              <span class="grid h-6 w-6 place-items-center rounded-full bg-emerald-400 text-[11px] font-extrabold text-[#0a1b44]">3</span>
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-100">Fechamento do Período — Consolidado ao Final da Etapa</h4>
+            </div>
+            <div class="mt-5 grid gap-6 sm:grid-cols-2">
+              <div><div class="text-xs font-semibold text-blue-200/80">Patrimônio Consolidado em R$</div>
+                <div id="s${i}_outBRL" class="mt-1 break-words text-3xl sm:text-4xl font-extrabold tracking-tight text-emerald-400">–</div></div>
+              <div class="sm:border-l sm:border-white/10 sm:pl-6"><div class="text-xs font-semibold text-blue-200/80">Patrimônio Consolidado em USD</div>
+                <div id="s${i}_outUSD" class="mt-1 break-words text-3xl sm:text-4xl font-extrabold tracking-tight text-emerald-400">–</div></div>
+            </div>
+            <p class="mt-5 text-xs text-blue-200/60">${i === 3 || s.to === 85 ? 'Patrimônio projetado aos 85 anos.' : 'Alimenta automaticamente a Abertura da próxima etapa.'}</p>
+          </div>
+        </section>
+      </div>
+    </article>
+  </div>`;
+}
+
+/* ---------- Cálculo ---------- */
+function recalc(){
+  let st = {acBR:0, rfBR:0, acUS:0, rfUS:0};
+  stages.forEach((s, idx) => {
+    const i = s.n, g = k => $(`s${i}_${k}`);
+    const fx = num(g('fx')) || 5.5; // cotação desta etapa
+    const pUS = +g('pUS').value, pAcUS = +g('pAcUS').value, pAcBR = +g('pAcBR').value;
+    g('pBR').value = (100 - pUS);
+    g('pRfUS').value = (100 - pAcUS);
+    g('pRfBR').value = (100 - pAcBR);
+
+    if(idx === 0){
+      st = {acBR:num(g('pAc')), rfBR:num(g('pRf')), acUS:0, rfUS:0};
+    } else {
+      g('hAcBR').value = brl(st.acBR); g('hRfBR').value = brl(st.rfBR);
+      g('hAcUS').value = usd(st.acUS); g('hRfUS').value = usd(st.rfUS);
+    }
+
+    const aporte = num(g('aporte'));
+    const brPart = aporte * (100 - pUS) / 100;
+    const usPart = aporte * pUS / 100 / fx; // em USD
+    const add = {
+      acBR: brPart * pAcBR / 100, rfBR: brPart * (100 - pAcBR) / 100,
+      acUS: usPart * pAcUS / 100, rfUS: usPart * (100 - pAcUS) / 100
+    };
+    for(let m = 0; m < s.years * 12; m++){
+      for(const k in st) st[k] = st[k] * (1 + M[k]) + add[k];
+    }
+    const totalBRL = st.acBR + st.rfBR + (st.acUS + st.rfUS) * fx;
+    g('outBRL').textContent = brl(totalBRL);
+    g('outUSD').textContent = usd(totalBRL / fx);
+  });
+}
+
+/* ---------- Navegação ---------- */
+$('continuar').onclick = () => {
+  const nome = $('nome').value.trim(), idade = parseInt($('idade').value, 10);
+  const err = $('erro1'); err.textContent = '';
+  if(!nome){ err.textContent = 'Informe seu nome.'; return; }
+  if(!isFinite(idade) || idade < 0 || idade > 120){ err.textContent = 'Informe uma idade válida (0 a 120).'; return; }
+  stages = buildStages(idade);
+  $('saudacao').textContent = `Olá, ${nome}!`;
+  const hu = $('hdrUser'); hu.textContent = `${nome} · ${idade} anos`; hu.classList.remove('hidden'); hu.classList.add('flex');
+  const box = $('etapas');
+  if(!stages.length){
+    $('resumo').textContent = `Aos ${idade} anos você já passou das etapas planejadas (até 85 anos).`;
+    box.innerHTML = '';
+  } else {
+    $('resumo').textContent = `Você tem ${idade} anos. Etapas restantes: ${stages.length}.`;
+    box.innerHTML = `<div class="absolute left-[21px] sm:left-[27px] top-10 bottom-16 w-0.5 bg-gradient-to-b from-blue-600 via-blue-300 to-slate-200"></div>`
+      + stages.map((s, k) => buildCard(s, k === 0)).join('');
+  }
+  $('tela1').classList.add('hidden');
+  $('tela2').classList.remove('hidden');
+  recalc();
+  window.scrollTo(0, 0);
+};
+$('voltar').onclick = () => {
+  $('tela2').classList.add('hidden'); $('tela1').classList.remove('hidden');
+  const hu = $('hdrUser'); hu.classList.add('hidden'); hu.classList.remove('flex');
+};
+document.addEventListener('input', e => { if(e.target.matches('[data-in]')) recalc(); });
+document.addEventListener('change', e => { if(e.target.matches('[data-in]')) recalc(); });
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && !$('tela1').classList.contains('hidden')) $('continuar').click(); });
+</script>
+</body>
+</html>
