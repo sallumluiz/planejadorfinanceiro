@@ -40,6 +40,14 @@ Taxa mensal = (1 + taxa anual)^(1/12) − 1.
 - Fechamento: Consolidado R$ = saldos R$ + saldos USD × cotação da etapa; Consolidado USD = Consolidado R$ ÷ cotação da etapa. Os saldos herdados passam à etapa seguinte nas suas moedas de origem (R$ e USD separados).
 - Simulação ilustrativa, não é recomendação de investimento.
 
+## Autenticação e banco (Supabase)
+- Biblioteca `@supabase/supabase-js` via CDN. Projeto: `https://wrdxqdprndpqnbveeoxn.supabase.co` (Publishable Key no `index.html`).
+- Tela de acesso antes do planejador: abas "Entrar" e "Criar Conta" (Nome, E-mail, Senha) com `signInWithPassword`, `signUp` e `signOut`; mensagens de erro em português.
+- Barra do usuário no topo: nome/e-mail, "Minhas Simulações" e "Sair".
+- "Salvar Simulação" grava em `simulacoes` com `user_id` do usuário logado, `nome`, `contato`, `patrimonio_final_brl` e `dados_simulacao` (JSON completo).
+- "Minhas Simulações" faz `select` filtrado por `user_id`, do mais recente ao mais antigo; clicar numa carrega todos os valores nos campos.
+- Pré-requisito no banco: rodar `supabase-setup.sql` (coluna `user_id`, `created_at` e policies RLS).
+
 ## Publicação (Git/GitHub)
 - Repositório remoto: https://github.com/sallumluiz/planejadorfinanceiro.git (remote `origin`, branch `main`).
 - **Sempre que o usuário pedir para atualizar ou publicar o site, fazer commit e push direto para a branch `main`** (sem criar branch nem PR).

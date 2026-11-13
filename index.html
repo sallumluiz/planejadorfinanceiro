@@ -33,14 +33,49 @@
         <div class="text-[11px] font-medium text-slate-500">Etapas da Vida</div>
       </div>
     </div>
-    <div id="hdrUser" class="hidden items-center gap-2 text-sm font-semibold text-slate-600"></div>
+    <div id="hdrUser" class="hidden items-center gap-1.5 sm:gap-2 text-sm font-semibold text-slate-600">
+      <span id="hdrName" class="hidden sm:inline max-w-[11rem] truncate mr-1"></span>
+      <button type="button" id="btnMinhas" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-100">Minhas Simulações</button>
+      <button type="button" id="btnSair" class="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800">Sair</button>
+    </div>
   </div>
 </header>
 
 <main class="mx-auto max-w-5xl px-4 sm:px-6 pb-20">
 
+  <!-- TELA DE ACESSO -->
+  <section id="telaAuth" class="fade mx-auto mt-12 sm:mt-20 max-w-md">
+    <div class="mb-8 text-center">
+      <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">Acesso seguro</span>
+      <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">Bem-vindo ao seu<br><span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">planejador financeiro</span></h1>
+      <p class="mt-3 text-slate-500">Entre para salvar e acompanhar suas simulações.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5">
+      <div class="mb-5 grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-sm font-bold">
+        <button type="button" id="tabLogin" class="rounded-lg bg-white py-2 shadow-sm text-slate-900">Entrar</button>
+        <button type="button" id="tabSignup" class="rounded-lg py-2 text-slate-500">Criar Conta</button>
+      </div>
+      <form id="authForm" class="space-y-4" novalidate>
+        <div id="auNomeWrap" class="hidden">
+          <label for="auNome" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Nome</label>
+          <input id="auNome" type="text" autocomplete="name" placeholder="Seu nome" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none transition placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+        </div>
+        <div>
+          <label for="auEmail" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">E-mail</label>
+          <input id="auEmail" type="email" autocomplete="email" placeholder="voce@email.com" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none transition placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+        </div>
+        <div>
+          <label for="auSenha" class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Senha</label>
+          <input id="auSenha" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium outline-none transition placeholder-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+        </div>
+        <p id="auMsg" class="min-h-[1.25rem] text-sm font-medium"></p>
+        <button type="submit" id="auSubmit" class="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:brightness-110 disabled:opacity-60">Entrar</button>
+      </form>
+    </div>
+  </section>
+
   <!-- TELA 1 -->
-  <section id="tela1" class="fade mx-auto mt-12 sm:mt-20 max-w-md">
+  <section id="tela1" class="fade hidden mx-auto mt-12 sm:mt-20 max-w-md">
     <div class="mb-8 text-center">
       <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">Simulador de patrimônio</span>
       <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight">Construa seu futuro,<br><span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">etapa por etapa</span></h1>
@@ -75,6 +110,18 @@
     </div>
   </section>
 </main>
+
+<!-- Modal Minhas Simulações -->
+<div id="listModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+  <div class="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-2xl">
+    <div class="flex items-start justify-between">
+      <div><h3 class="text-lg font-extrabold tracking-tight">Minhas Simulações</h3>
+      <p class="mt-1 text-xs text-slate-500">Da mais recente para a mais antiga. Clique para carregar.</p></div>
+      <button type="button" data-close-list class="text-slate-400 hover:text-slate-700" aria-label="Fechar">✕</button>
+    </div>
+    <div id="listBody" class="mt-4 space-y-2 overflow-y-auto"></div>
+  </div>
+</div>
 
 <!-- Modal Salvar Simulação -->
 <div id="saveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
@@ -341,14 +388,113 @@ function recalc(){
   sim.patrimonio_final_brl = sim.etapas.length ? sim.etapas[sim.etapas.length - 1].fechamento.consolidado_brl : 0;
 }
 
-/* ---------- Supabase: salvar simulação ---------- */
+/* ---------- Supabase: cliente, autenticação e simulações ---------- */
 const SUPABASE_URL = 'https://wrdxqdprndpqnbveeoxn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_vUfFhUI6O_7ya7-hOFLltA_IIeDTvoQ';
 let sb = null;
 try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error('Supabase indisponível', e); }
 
+let user = null;
+let curScreen = 'auth';
+const displayName = () => user ? ((user.user_metadata && user.user_metadata.nome) || user.email || '') : '';
+
+function setScreen(name){
+  curScreen = name;
+  $('telaAuth').classList.toggle('hidden', name !== 'auth');
+  $('tela1').classList.toggle('hidden', name !== 'tela1');
+  $('tela2').classList.toggle('hidden', name !== 'tela2');
+  const hu = $('hdrUser');
+  hu.classList.toggle('hidden', name === 'auth'); hu.classList.toggle('flex', name !== 'auth');
+  window.scrollTo(0, 0);
+}
+
+function applySession(session){
+  if(session && session.user){
+    user = session.user;
+    $('hdrName').textContent = displayName();
+    if(curScreen === 'auth'){
+      if(!$('nome').value && user.user_metadata && user.user_metadata.nome) $('nome').value = user.user_metadata.nome;
+      setScreen('tela1');
+    } else { $('hdrName').textContent = displayName(); }
+  } else {
+    user = null; stages = [];
+    $('etapas').innerHTML = '';
+    setScreen('auth');
+  }
+}
+
+/* --- Tela de acesso --- */
+let authMode = 'login';
+function setAuthMode(m){
+  authMode = m;
+  const on = 'rounded-lg bg-white py-2 shadow-sm text-slate-900', off = 'rounded-lg py-2 text-slate-500';
+  $('tabLogin').className = m === 'login' ? on : off;
+  $('tabSignup').className = m === 'signup' ? on : off;
+  $('auNomeWrap').classList.toggle('hidden', m !== 'signup');
+  $('auSenha').autocomplete = m === 'signup' ? 'new-password' : 'current-password';
+  $('auSubmit').textContent = m === 'signup' ? 'Criar Conta' : 'Entrar';
+  authMsg('');
+}
+function authMsg(text, ok){
+  const el = $('auMsg'); el.textContent = text;
+  el.className = 'min-h-[1.25rem] text-sm font-medium ' + (ok ? 'text-emerald-600' : 'text-rose-600');
+}
+function traduzErro(error){
+  const m = (error && error.message || '').toLowerCase();
+  if(m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if(m.includes('already registered') || m.includes('already been registered')) return 'Este e-mail já está cadastrado. Use a aba "Entrar".';
+  if(m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.';
+  if(m.includes('at least') || m.includes('weak password')) return 'A senha deve ter pelo menos 6 caracteres.';
+  if(m.includes('valid email') || m.includes('invalid email') || m.includes('unable to validate email')) return 'Informe um e-mail válido.';
+  if(m.includes('rate limit') || m.includes('too many')) return 'Muitas tentativas. Aguarde um pouco e tente novamente.';
+  if(m.includes('failed to fetch') || m.includes('network')) return 'Sem conexão com o servidor. Verifique sua internet.';
+  return 'Não foi possível concluir. Tente novamente. (' + (error && error.message || 'erro desconhecido') + ')';
+}
+$('tabLogin').onclick = () => setAuthMode('login');
+$('tabSignup').onclick = () => setAuthMode('signup');
+$('authForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  authMsg('');
+  if(!sb){ authMsg('Não foi possível conectar ao servidor.'); return; }
+  const email = $('auEmail').value.trim(), senha = $('auSenha').value, nome = $('auNome').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){ authMsg('Informe um e-mail válido.'); return; }
+  if(!senha){ authMsg('Informe sua senha.'); return; }
+  if(authMode === 'signup'){
+    if(!nome){ authMsg('Informe seu nome.'); return; }
+    if(senha.length < 6){ authMsg('A senha deve ter pelo menos 6 caracteres.'); return; }
+  }
+  const btn = $('auSubmit'), label = btn.textContent; btn.disabled = true; btn.textContent = 'Aguarde…';
+  try {
+    if(authMode === 'login'){
+      const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+      if(error) authMsg(traduzErro(error));
+    } else {
+      const { data, error } = await sb.auth.signUp({ email, password: senha, options: { data: { nome } } });
+      if(error) authMsg(traduzErro(error));
+      else if(data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+        authMsg('Este e-mail já está cadastrado. Use a aba "Entrar".');
+      else if(!data.session){
+        authMsg('Conta criada! Enviamos um e-mail de confirmação. Confirme e depois entre.', true);
+        setAuthMode('login'); authMsg('Conta criada! Enviamos um e-mail de confirmação. Confirme e depois entre.', true);
+      }
+    }
+  } catch(err){ authMsg(traduzErro(err)); }
+  btn.disabled = false; btn.textContent = label;
+});
+$('btnSair').onclick = async () => {
+  try { if(sb) await sb.auth.signOut(); } catch(e) { console.error(e); }
+  applySession(null);
+};
+if(sb){
+  sb.auth.onAuthStateChange((ev, session) => applySession(session));
+  sb.auth.getSession().then(({ data }) => applySession(data && data.session));
+} else authMsg('Não foi possível conectar ao servidor.');
+
+/* --- Salvar simulação (vinculada ao usuário) --- */
 function openSave(){
   $('saveForm').classList.remove('hidden'); $('saveOk').classList.add('hidden');
+  if(!$('svNome').value) $('svNome').value = displayName() === (user && user.email) ? '' : displayName();
+  if(!$('svContato').value && user) $('svContato').value = user.email || '';
   $('saveErr').textContent = ''; $('saveModal').classList.remove('hidden'); $('saveModal').classList.add('flex');
   $('svNome').focus();
 }
@@ -356,9 +502,11 @@ function closeSave(){ $('saveModal').classList.add('hidden'); $('saveModal').cla
 async function doSave(){
   const btn = $('svConfirm'), err = $('saveErr'); err.textContent = '';
   if(!sb){ err.textContent = 'Não foi possível conectar ao banco de dados.'; return; }
+  if(!user){ err.textContent = 'Sua sessão expirou. Entre novamente.'; return; }
   btn.disabled = true; btn.textContent = 'Salvando…';
   const nome = $('svNome').value.trim(), contato = $('svContato').value.trim();
   const { error } = await sb.from('simulacoes').insert({
+    user_id: user.id,
     nome: nome || null,
     contato: contato || null,
     patrimonio_final_brl: sim.patrimonio_final_brl,
@@ -369,15 +517,63 @@ async function doSave(){
   $('saveForm').classList.add('hidden'); $('saveOk').classList.remove('hidden');
 }
 
+/* --- Minhas simulações --- */
+function closeList(){ $('listModal').classList.add('hidden'); $('listModal').classList.remove('flex'); }
+async function openList(){
+  const body = $('listBody');
+  $('listModal').classList.remove('hidden'); $('listModal').classList.add('flex');
+  body.innerHTML = '<p class="py-6 text-center text-sm text-slate-500">Carregando…</p>';
+  if(!sb || !user){ body.innerHTML = '<p class="py-6 text-center text-sm text-rose-600">Entre para ver suas simulações.</p>'; return; }
+  const { data, error } = await sb.from('simulacoes')
+    .select('id,nome,patrimonio_final_brl,created_at,dados_simulacao')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+  if(error){ body.innerHTML = ''; const p = document.createElement('p'); p.className = 'py-6 text-center text-sm text-rose-600'; p.textContent = 'Erro ao carregar: ' + error.message; body.appendChild(p); return; }
+  if(!data || !data.length){ body.innerHTML = '<p class="py-6 text-center text-sm text-slate-500">Você ainda não salvou nenhuma simulação.</p>'; return; }
+  body.innerHTML = '';
+  data.forEach(row => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-blue-400 hover:bg-blue-50/40';
+    const d = row.created_at ? new Date(row.created_at).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}) : '';
+    const top = document.createElement('div'); top.className = 'flex items-center justify-between gap-3';
+    const t = document.createElement('span'); t.className = 'text-sm font-bold text-slate-800'; t.textContent = row.nome || 'Simulação sem nome';
+    const dt = document.createElement('span'); dt.className = 'text-xs text-slate-400'; dt.textContent = d;
+    top.append(t, dt);
+    const v = document.createElement('div'); v.className = 'mt-1 text-sm font-extrabold text-emerald-600';
+    v.textContent = brl(Number(row.patrimonio_final_brl) || 0);
+    const idade = row.dados_simulacao && row.dados_simulacao.idade_atual;
+    const s = document.createElement('div'); s.className = 'text-xs text-slate-500';
+    s.textContent = 'Patrimônio final' + (isFinite(idade) && idade !== null ? ' · simulado aos ' + idade + ' anos' : '');
+    b.append(top, v, s);
+    b.onclick = () => loadSim(row);
+    body.appendChild(b);
+  });
+}
+function setVal(id, v){ const el = $(id); if(el && v !== undefined && v !== null) el.value = v; }
+function loadSim(row){
+  const d = row.dados_simulacao || {}, et = d.etapas || [];
+  if(!et.length) return;
+  let idade = Number(d.idade_atual);
+  if(!isFinite(idade) || d.idade_atual === null || d.idade_atual === undefined){
+    const f = et[0]; idade = ({1:35, 2:60, 3:85})[f.etapa] - f.anos;
+  }
+  renderPlanner($('nome').value.trim() || row.nome || displayName(), idade);
+  et.forEach((e, k) => {
+    const i = e.etapa;
+    if(!$(`s${i}_fx`)) return;
+    setVal(`s${i}_fx`, e.cotacao_dolar); setVal(`s${i}_aporte`, e.aporte_mensal_brl || '');
+    setVal(`s${i}_pUS`, e.pct_dolar); setVal(`s${i}_pAcUS`, e.pct_dolar_acoes_eua); setVal(`s${i}_pAcBR`, e.pct_real_acoes_brasil);
+    if(k === 0 && e.abertura){
+      setVal(`s${i}_pAc`, e.abertura.acoes_brasil_brl || ''); setVal(`s${i}_pRf`, e.abertura.renda_fixa_brasil_brl || '');
+    }
+  });
+  recalc(); closeList();
+}
+
 /* ---------- Navegação ---------- */
-$('continuar').onclick = () => {
-  const nome = $('nome').value.trim(), idade = parseInt($('idade').value, 10);
-  const err = $('erro1'); err.textContent = '';
-  if(!nome){ err.textContent = 'Informe seu nome.'; return; }
-  if(!isFinite(idade) || idade < 0 || idade > 120){ err.textContent = 'Informe uma idade válida (0 a 120).'; return; }
+function renderPlanner(nome, idade){
   stages = buildStages(idade); currentAge = idade;
   $('saudacao').textContent = `Olá, ${nome}!`;
-  const hu = $('hdrUser'); hu.textContent = `${nome} · ${idade} anos`; hu.classList.remove('hidden'); hu.classList.add('flex');
   const box = $('etapas');
   if(!stages.length){
     $('resumo').textContent = `Aos ${idade} anos você já passou das etapas planejadas (até 85 anos).`;
@@ -387,24 +583,30 @@ $('continuar').onclick = () => {
     box.innerHTML = `<div class="absolute left-[21px] sm:left-[27px] top-10 bottom-16 w-0.5 bg-gradient-to-b from-blue-600 via-blue-300 to-slate-200"></div>`
       + stages.map((s, k) => buildCard(s, k === 0, k === stages.length - 1)).join('');
   }
-  $('tela1').classList.add('hidden');
-  $('tela2').classList.remove('hidden');
+  setScreen('tela2');
   recalc();
-  window.scrollTo(0, 0);
+}
+$('continuar').onclick = () => {
+  const nome = $('nome').value.trim(), idade = parseInt($('idade').value, 10);
+  const err = $('erro1'); err.textContent = '';
+  if(!nome){ err.textContent = 'Informe seu nome.'; return; }
+  if(!isFinite(idade) || idade < 0 || idade > 120){ err.textContent = 'Informe uma idade válida (0 a 120).'; return; }
+  renderPlanner(nome, idade);
 };
-$('voltar').onclick = () => {
-  $('tela2').classList.add('hidden'); $('tela1').classList.remove('hidden');
-  const hu = $('hdrUser'); hu.classList.add('hidden'); hu.classList.remove('flex');
-};
+$('voltar').onclick = () => setScreen('tela1');
+$('btnMinhas').onclick = openList;
 document.addEventListener('input', e => { if(e.target.matches('[data-in]')) recalc(); });
 document.addEventListener('change', e => { if(e.target.matches('[data-in]')) recalc(); });
 document.addEventListener('click', e => {
   if(e.target.closest('#btnSalvar')) openSave();
   if(e.target.closest('[data-close-save]') || e.target === $('saveModal')) closeSave();
+  if(e.target.closest('[data-close-list]') || e.target === $('listModal')) closeList();
 });
 $('svConfirm').onclick = doSave;
 document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeSave(); if(e.key === 'Enter' && !$('tela1').classList.contains('hidden')) $('continuar').click(); });
+  if(e.key === 'Escape'){ closeSave(); closeList(); }
+  if(e.key === 'Enter' && curScreen === 'tela1') $('continuar').click();
+});
 </script>
 </body>
 </html>
